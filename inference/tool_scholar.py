@@ -1,3 +1,4 @@
+from urllib.parse import urlparse
 import os
 import json
 import requests
@@ -28,7 +29,10 @@ class Scholar(BaseTool):
     }
 
     def google_scholar_with_serp(self, query: str):
-        conn = http.client.HTTPSConnection("google.serper.dev")
+        serper_url = urlparse(os.getenv("SERPER_BASE_URL", "https://google.serper.dev"))
+        conn = (
+            http.client.HTTPConnection if serper_url.scheme == "http" else http.client.HTTPSConnection
+        )(serper_url.netloc)
         payload = json.dumps({
         "q": query,
         })
@@ -38,7 +42,7 @@ class Scholar(BaseTool):
         }
         for i in range(5):
             try:
-                conn.request("POST", "/scholar", payload, headers)
+                conn.request("POST", f"{serper_url.path.rstrip('/')}/scholar", payload, headers)
                 res = conn.getresponse()
                 break
             except Exception as e:

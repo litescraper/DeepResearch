@@ -56,7 +56,7 @@ class WebSearch(BaseTool):
     }
 
     def google_search(self, query: str):
-        url = 'https://google.serper.dev/search'
+        url = f'{os.getenv("SERPER_BASE_URL", "https://google.serper.dev").rstrip("/")}/search'
         headers = {
             'X-API-KEY': TEXT_SEARCH_KEY,
             'Content-Type': 'application/json',

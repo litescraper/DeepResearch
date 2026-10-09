@@ -1,3 +1,4 @@
+from urllib.parse import urlparse
 import json
 from concurrent.futures import ThreadPoolExecutor
 from typing import List, Union
@@ -38,7 +39,10 @@ class Search(BaseTool):
     def google_search_with_serp(self, query: str):
         def contains_chinese_basic(text: str) -> bool:
             return any('\u4E00' <= char <= '\u9FFF' for char in text)
-        conn = http.client.HTTPSConnection("google.serper.dev")
+        serper_url = urlparse(os.getenv("SERPER_BASE_URL", "https://google.serper.dev"))
+        conn = (
+            http.client.HTTPConnection if serper_url.scheme == "http" else http.client.HTTPSConnection
+        )(serper_url.netloc)
         if contains_chinese_basic(query):
             payload = json.dumps({
                 "q": query,
@@ -62,7 +66,7 @@ class Search(BaseTool):
         
         for i in range(5):
             try:
-                conn.request("POST", "/search", payload, headers)
+                conn.request("POST", f"{serper_url.path.rstrip('/')}/search", payload, headers)
                 res = conn.getresponse()
                 break
             except Exception as e:
